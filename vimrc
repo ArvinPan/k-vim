@@ -256,6 +256,7 @@ endif
 " FileEncode Settings 文件编码,格式
 "==========================================
 " 设置新文件的编码为 UTF-8
+scriptencoding utf-8
 set encoding=utf-8
 " 自动判断编码时，依次尝试以下编码：
 set fileencodings=ucs-bom,utf-8,cp936,gb18030,big5,euc-jp,euc-kr,latin1
@@ -442,8 +443,8 @@ nnoremap <silent> g* g*zz
 noremap <silent><leader>/ :nohls<CR>
 
 " switch # *
-nnoremap # *
-nnoremap * #
+" nnoremap # *
+" nnoremap * #
 
 " for # indent, python文件中输入新行时#号注释不切回行首
 autocmd BufNewFile,BufRead *.py inoremap # X<c-h>#
@@ -657,8 +658,10 @@ endif
 set background=dark
 set t_Co=256
 
-colorscheme solarized
-" colorscheme molokai
+" colorscheme solarized
+colorscheme molokai
+" colorscheme Tomorrow-Night
+" colorscheme Tomorrow-Night-Bright
 
 
 " 设置标记一列的背景颜色和数字一行颜色一致
