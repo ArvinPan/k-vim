@@ -241,7 +241,8 @@ function! NumberToggle()
     set relativenumber
   endif
 endfunc
-nnoremap <C-n> :call NumberToggle()<cr>
+" nnoremap <C-n> :call NumberToggle()<cr>
+" C-n is used for multiple cursors
 
 " 防止tmux下vim的背景色显示异常
 " Refer: http://sunaku.github.io/vim-256color-bce.html
@@ -565,6 +566,8 @@ nnoremap U <C-r>
 nnoremap <leader>ev :vsp $MYVIMRC<CR>
 nnoremap <leader>ez :vsp ~/.zshrc<CR>
 nnoremap <leader>sv :source $MYVIMRC<CR>
+nnoremap <leader>eb :vsp $MYVIMRC.bundles<CR>
+nnoremap <leader>sb :source $MYVIMRC.bundles<CR>
 
 "==========================================
 " FileType Settings  文件类型设置
