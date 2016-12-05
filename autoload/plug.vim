@@ -61,7 +61,7 @@
 " More information: https://github.com/junegunn/vim-plug
 "
 "
-" Copyright (c) 2017 Junegunn Choi
+" Copyright (c) 2016 Junegunn Choi
 "
 " MIT License
 "
@@ -426,10 +426,7 @@ function! s:dobufread(names)
     let path = s:rtp(g:plugs[name]).'/**'
     for dir in ['ftdetect', 'ftplugin']
       if len(finddir(dir, path))
-        if exists('#BufRead')
-          doautocmd BufRead
-        endif
-        return
+        return s:doautocmd('BufRead')
       endif
     endfor
   endfor
@@ -621,10 +618,10 @@ function! s:syntax()
   syn match plugTag /(tag: [^)]\+)/
   syn match plugInstall /\(^+ \)\@<=[^:]*/
   syn match plugUpdate /\(^* \)\@<=[^:]*/
-  syn match plugCommit /^  \X*[0-9a-f]\{7,9} .*/ contains=plugRelDate,plugEdge,plugTag
+  syn match plugCommit /^  \X*[0-9a-f]\{7} .*/ contains=plugRelDate,plugEdge,plugTag
   syn match plugEdge /^  \X\+$/
   syn match plugEdge /^  \X*/ contained nextgroup=plugSha
-  syn match plugSha /[0-9a-f]\{7,9}/ contained
+  syn match plugSha /[0-9a-f]\{7}/ contained
   syn match plugRelDate /([^)]*)$/ contained
   syn match plugNotLoaded /(not loaded)$/
   syn match plugError /^x.*/
@@ -754,7 +751,7 @@ function! s:prepare(...)
   for k in ['<cr>', 'L', 'o', 'X', 'd', 'dd']
     execute 'silent! unmap <buffer>' k
   endfor
-  setlocal buftype=nofile bufhidden=wipe nobuflisted nolist noswapfile nowrap cursorline modifiable nospell
+  setlocal buftype=nofile bufhidden=wipe nobuflisted nolist noswapfile nowrap cursorline modifiable
   setf vim-plug
   if exists('g:syntax_on')
     call s:syntax()
@@ -820,10 +817,6 @@ function! s:do(pull, force, todo)
       let type = type(spec.do)
       if type == s:TYPE.string
         if spec.do[0] == ':'
-          if !get(s:loaded, name, 0)
-            let s:loaded[name] = 1
-            call s:reorg_rtp()
-          endif
           call s:load_plugin(spec)
           try
             execute spec.do[1:]
@@ -868,7 +861,7 @@ function! s:checkout(spec)
   let output = s:system('git rev-parse HEAD', a:spec.dir)
   if !v:shell_error && !s:hash_match(sha, s:lines(output)[0])
     let output = s:system(
-          \ 'git fetch --depth 999999 && git checkout '.s:esc(sha).' --', a:spec.dir)
+          \ 'git fetch --depth 999999 && git checkout '.s:esc(sha), a:spec.dir)
   endif
   return output
 endfunction
@@ -963,7 +956,7 @@ function! s:update_impl(pull, force, args) abort
 
   let use_job = s:nvim || s:vim8
   let python = (has('python') || has('python3')) && !use_job
-  let ruby = has('ruby') && !use_job && (v:version >= 703 || v:version == 702 && has('patch374')) && !(s:is_win && has('gui_running')) && threads > 1 && s:check_ruby()
+  let ruby = has('ruby') && !use_job && (v:version >= 703 || v:version == 702 && has('patch374')) && !(s:is_win && has('gui_running')) && s:check_ruby()
 
   let s:update = {
     \ 'start':   reltime(),
@@ -1028,7 +1021,7 @@ function! s:update_impl(pull, force, args) abort
     endtry
   else
     call s:update_vim()
-    while use_job && sync
+    while use_job && has('vim_starting')
       sleep 100m
       if s:update.fin
         break
@@ -1067,11 +1060,11 @@ function! s:update_finish()
           endif
         endif
         call s:log4(name, 'Checking out '.tag)
-        let out = s:system('git checkout -q '.s:esc(tag).' -- 2>&1', spec.dir)
+        let out = s:system('git checkout -q '.s:esc(tag).' 2>&1', spec.dir)
       else
         let branch = s:esc(get(spec, 'branch', 'master'))
         call s:log4(name, 'Merging origin/'.branch)
-        let out = s:system('git checkout -q '.branch.' -- 2>&1'
+        let out = s:system('git checkout -q '.branch.' 2>&1'
               \. (has_key(s:update.new, name) ? '' : ('&& git merge --ff-only origin/'.branch.' 2>&1')), spec.dir)
       endif
       if !v:shell_error && filereadable(spec.dir.'/.gitmodules') &&
@@ -1161,7 +1154,7 @@ function! s:job_cb(fn, job, ch, data)
   call call(a:fn, [a:job, a:data])
 endfunction
 
-function! s:nvim_cb(job_id, data, event) dict abort
+function! s:nvim_cb(job_id, data, event) abort
   return a:event == 'stdout' ?
     \ s:job_cb('s:job_out_cb',  self, 0, join(a:data, "\n")) :
     \ s:job_cb('s:job_exit_cb', self, 0, a:data)
@@ -1189,7 +1182,7 @@ function! s:spawn(name, cmd, opts)
             \ 'Invalid arguments (or job table is full)']
     endif
   elseif s:vim8
-    let jid = job_start(s:is_win ? join(argv, ' ') : argv, {
+    let jid = job_start(argv, {
     \ 'out_cb':   function('s:job_cb', ['s:job_out_cb',  job]),
     \ 'exit_cb':  function('s:job_cb', ['s:job_exit_cb', job]),
     \ 'out_mode': 'raw'
@@ -1862,14 +1855,8 @@ function! s:update_ruby()
   main = Thread.current
   threads = []
   watcher = Thread.new {
-    if vim7
-      while VIM::evaluate('getchar(1)')
-        sleep 0.1
-      end
-    else
-      require 'io/console' # >= Ruby 1.9
-      nil until IO.console.getch == 3.chr
-    end
+    require 'io/console' # >= Ruby 1.9
+    nil until IO.console.getch == 3.chr
     mtx.synchronize do
       running = false
       threads.each { |t| t.raise Interrupt } unless vim7
@@ -2028,21 +2015,10 @@ function! s:git_validate(spec, check_branch)
               \ branch, a:spec.branch)
       endif
       if empty(err)
-        let [ahead, behind] = split(s:lastline(s:system(printf(
-              \ 'git rev-list --count --left-right HEAD...origin/%s',
-              \ a:spec.branch), a:spec.dir)), '\t')
-        if !v:shell_error && ahead
-          if behind
-            " Only mention PlugClean if diverged, otherwise it's likely to be
-            " pushable (and probably not that messed up).
-            let err = printf(
-                  \ "Diverged from origin/%s (%d commit(s) ahead and %d commit(s) behind!\n"
-                  \ .'Backup local changes and run PlugClean and PlugUpdate to reinstall it.', a:spec.branch, ahead, behind)
-          else
-            let err = printf("Ahead of origin/%s by %d commit(s).\n"
-                  \ .'Cannot update until local changes are pushed.',
-                  \ a:spec.branch, ahead)
-          endif
+        let commits = len(s:lines(s:system(printf('git rev-list origin/%s..HEAD', a:spec.branch), a:spec.dir)))
+        if !v:shell_error && commits
+          let err = join([printf('Diverged from origin/%s by %d commit(s).', a:spec.branch, commits),
+                        \ 'Reinstall after PlugClean.'], "\n")
         endif
       endif
     endif
@@ -2285,7 +2261,7 @@ function! s:preview_commit()
     let b:plug_preview = !s:is_preview_window_open()
   endif
 
-  let sha = matchstr(getline('.'), '^  \X*\zs[0-9a-f]\{7,9}')
+  let sha = matchstr(getline('.'), '^  \X*\zs[0-9a-f]\{7}')
   if empty(sha)
     return
   endif
@@ -2303,12 +2279,7 @@ function! s:preview_commit()
     wincmd P
   endif
   setlocal previewwindow filetype=git buftype=nofile nobuflisted modifiable
-  try
-    let [sh, shrd] = s:chsh(1)
-    execute 'silent %!cd' s:shellesc(g:plugs[name].dir) '&& git show --no-color --pretty=medium' sha
-  finally
-    let [&shell, &shellredir] = [sh, shrd]
-  endtry
+  execute 'silent %!cd' s:shellesc(g:plugs[name].dir) '&& git show --no-color --pretty=medium' sha
   setlocal nomodifiable
   nnoremap <silent> <buffer> q :q<cr>
   wincmd p
