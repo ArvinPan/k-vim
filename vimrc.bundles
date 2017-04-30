@@ -30,6 +30,7 @@ call plug#begin('~/.vim/bundle')
 " ################### Arvin ######################
 Plug 'vim-scripts/a.vim'
 Plug 'mileszs/ack.vim'
+Plug 'chiel92/vim-autoformat'
 
 " session
 Plug 'tpope/vim-obsession'
@@ -170,6 +171,11 @@ Plug 'kana/vim-textobj-line'
 Plug 'kana/vim-textobj-entire'
 " 增加缩进文本对象: i   dai yai cii - 相同缩进属于同一块
 Plug 'kana/vim-textobj-indent'
+
+" taking notes
+Plug 'rykka/riv.vim'
+Plug 'rykka/instantrst'
+Plug 'vimwiki/vimwiki'
 
 if count(g:bundle_groups, 'tmux')
     " tmux
