@@ -459,7 +459,8 @@ nnoremap ]b :bnext<cr>
 " 使用方向键切换buffer
 noremap <left> :bp<CR>
 noremap <right> :bn<CR>
-
+" delete buffer without losing the split window
+nnoremap <C-c> :bp\|bd #<CR>
 
 " tab 操作
 " http://vim.wikia.com/wiki/Alternative_tab_navigation

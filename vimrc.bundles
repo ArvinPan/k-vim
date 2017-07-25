@@ -176,6 +176,7 @@ Plug 'kana/vim-textobj-indent'
 Plug 'rykka/riv.vim'
 Plug 'rykka/instantrst'
 Plug 'vimwiki/vimwiki'
+Plug 'aklt/plantuml-syntax'
 
 if count(g:bundle_groups, 'tmux')
     " tmux
@@ -187,10 +188,10 @@ if count(g:bundle_groups, 'markdown')
     Plug 'plasticboy/vim-markdown', {'for': 'md'}
     " https://github.com/suan/vim-instant-markdown
     " npm -g install instant-markdown-d
-    " Plug 'suan/vim-instant-markdown'
-    " let g:instant_markdown_slow = 1
-    " let g:instant_markdown_autostart = 0
-    " map <F12> :InstantMarkdownPreview<CR>
+    Plug 'suan/vim-instant-markdown'
+    let g:instant_markdown_slow = 1
+    let g:instant_markdown_autostart = 0
+    map <F12> :InstantMarkdownPreview<CR>
 endif
 
 if count(g:bundle_groups, 'golang')
@@ -309,6 +310,11 @@ call plug#end()
 
 
 " ################### 基础 ######################
+" vimwiki{{{
+    " let g:vimwiki_list = [{'path': '~/Documents/sync/doc/wiki/'}]
+    let g:vimwiki_list = [{'path': '~/Documents/sync/doc/wiki/',
+                \ 'syntax': 'markdown', 'ext': '.md'}]
+" }}}
 
 " syntastic {{{
 if has_key(g:plugs, 'syntastic')
@@ -751,6 +757,7 @@ endif
 
     " nerdtreetabs
     map <Leader>n <plug>NERDTreeTabsToggle<CR>
+    map <Leader>m :NERDTreeFind<CR>
     " 关闭同步
     " let g:nerdtree_tabs_synchronize_view=0
     " let g:nerdtree_tabs_synchronize_focus=0
@@ -902,3 +909,8 @@ endif
 " }}}
 
 "------------------------------------------- end of configs --------------------------------------------
+
+" personal configs
+" plantuml
+au FileType plantuml command! OpenUml :!open -a "Google Chrome" %
+" end
