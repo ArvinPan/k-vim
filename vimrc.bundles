@@ -246,6 +246,11 @@ if count(g:bundle_groups, 'javascript')
     " 安装完成后还需要在 bundle/tern_for_vim 下执行 npm install 安装依赖 `cd ~/.vim/bundle/tern_for_vim && npm install`
     " see https://github.com/marijnh/tern_for_vim
     " Plug 'marijnh/tern_for_vim', {'do': 'npm install'}
+
+    " React
+    Plug 'mxw/vim-jsx'
+    Plug 'justinj/vim-react-snippets'
+    Plug 'jbgutierrez/vim-babel'
 endif
 
 
