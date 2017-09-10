@@ -685,3 +685,7 @@ highlight SpellLocal term=underline cterm=underline
 
 " fix syntax not work
 syntax on
+
+" fix mksession conficts
+set sessionoptions-=options
+
